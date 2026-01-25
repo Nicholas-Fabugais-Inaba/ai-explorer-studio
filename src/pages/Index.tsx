@@ -25,15 +25,26 @@ const Index = () => {
     setSelectedModule(null);
   };
 
+  const handleNavigate = (section: string) => {
+    if (section === 'home') {
+      setSelectedModule(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Header activeModule={selectedModule ?? undefined} />
+      <Header 
+        activeModule={selectedModule ?? undefined} 
+        onNavigate={handleNavigate}
+        onSelectModule={handleSelectModule}
+      />
       
       {selectedModule ? (
         <div className="pt-16">
           <ConceptViewer 
             moduleId={selectedModule} 
-            onBack={handleBackToModules} 
+            onBack={handleBackToModules}
+            onNextModule={handleSelectModule}
           />
         </div>
       ) : (
@@ -41,7 +52,9 @@ const Index = () => {
           <HeroSection onStartLearning={handleStartLearning} />
           <ModuleGrid onSelectModule={handleSelectModule} />
           <InteractivePlayground />
-          <InfrastructureOverview />
+          <div id="infrastructure">
+            <InfrastructureOverview />
+          </div>
           
           {/* Footer */}
           <footer className="py-12 border-t border-border/50 bg-background">
