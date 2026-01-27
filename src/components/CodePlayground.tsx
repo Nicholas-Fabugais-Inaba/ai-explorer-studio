@@ -151,6 +151,16 @@ interface SimulatedResult {
 }
 
 function getSimulatedOutput(code: string, language: string): SimulatedResult {
+  const trimmedCode = code.trim();
+  
+  // Check if code is empty
+  if (!trimmedCode) {
+    return {
+      output: `Error: No code to execute.\nPlease write some code and try again.`,
+      isError: true
+    };
+  }
+
   // Check for common syntax errors
   const hasUnclosedParens = (code.match(/\(/g) || []).length !== (code.match(/\)/g) || []).length;
   const hasUnclosedBrackets = (code.match(/\[/g) || []).length !== (code.match(/\]/g) || []).length;
@@ -177,6 +187,17 @@ function getSimulatedOutput(code: string, language: string): SimulatedResult {
     };
   }
 
+  // Check for incomplete statements (missing colons in Python)
+  if (language === "python") {
+    const controlStatements = code.match(/\b(if|elif|else|for|while|def|class|try|except|finally|with)\b[^:]*$/gm);
+    if (controlStatements) {
+      return {
+        output: `SyntaxError: expected ':'\n  Missing colon after control statement\n  ${controlStatements[0]}`,
+        isError: true
+      };
+    }
+  }
+
   // Check for undefined variables (simple heuristic)
   if (code.includes("undefined_var") || code.includes("unknownVariable")) {
     return {
@@ -193,166 +214,155 @@ function getSimulatedOutput(code: string, language: string): SimulatedResult {
     };
   }
 
-  // Generate realistic output based on code patterns
-  if (code.includes("LinearRegression")) {
+  // Check for common typos and errors
+  if (code.includes("pritn") || code.includes("pirnt")) {
     return {
-      output: `>>> model = LinearRegression()
->>> model.fit(X, y)
-LinearRegression()
->>> prediction = model.predict([[5]])
->>> print(prediction)
-[10.0]`,
-      isError: false
+      output: `NameError: name 'pritn' is not defined. Did you mean: 'print'?`,
+      isError: true
     };
+  }
+
+  if (code.includes("imprt") || code.includes("imoprt")) {
+    return {
+      output: `SyntaxError: invalid syntax\n  Did you mean 'import'?`,
+      isError: true
+    };
+  }
+
+  // Check for missing imports
+  const usedLibraries = [];
+  if (code.includes("pd.") && !code.includes("import pandas")) usedLibraries.push("pandas");
+  if (code.includes("np.") && !code.includes("import numpy")) usedLibraries.push("numpy");
+  if (code.includes("plt.") && !code.includes("import matplotlib")) usedLibraries.push("matplotlib");
+  if (code.includes("sklearn") && !code.includes("from sklearn") && !code.includes("import sklearn")) usedLibraries.push("sklearn");
+  
+  if (usedLibraries.length > 0 && !code.includes("# imports assumed")) {
+    // Only warn, don't error - many snippets assume imports
+  }
+
+  // Generate output based on actual code content
+  const lines = code.split('\n').filter(line => line.trim() && !line.trim().startsWith('#') && !line.trim().startsWith('//'));
+  let output = "";
+
+  // Simulate print statements
+  const printMatches = code.matchAll(/print\s*\(\s*(?:f)?["']([^"']*?)["']\s*\)/g);
+  const prints: string[] = [];
+  for (const match of printMatches) {
+    prints.push(match[1].replace(/\{[^}]+\}/g, (m) => {
+      // Simulate f-string variable replacement
+      if (m.includes("accuracy")) return "0.875";
+      if (m.includes("len")) return "100";
+      if (m.includes("count")) return "7";
+      if (m.includes("name")) return "Model";
+      return "[value]";
+    }));
+  }
+
+  // Simulate console.log for JS/TS
+  const consoleMatches = code.matchAll(/console\.log\s*\(\s*["'`]([^"'`]*?)["'`]\s*\)/g);
+  for (const match of consoleMatches) {
+    prints.push(match[1]);
+  }
+
+  // Build contextual output based on what's in the code
+  if (code.includes("LinearRegression") && code.includes("fit")) {
+    output += `>>> LinearRegression model trained successfully\n`;
+    output += `>>> Model coefficients: [2.0]\n`;
+    output += `>>> Model intercept: 10.0\n`;
+    if (code.includes("predict")) {
+      output += `>>> Prediction output: [10.0]\n`;
+    }
   }
   
   if (code.includes("pd.read_csv")) {
-    return {
-      output: `>>> data = pd.read_csv('customer_data.csv')
->>> print(data.head())
-   id  name          email       signup_date
-0   1  John  john@email.com      2024-01-15
-1   2  Jane  jane@email.com      2024-01-16
-2   3  Bob   bob@email.com       2024-01-17
-
->>> print(data.info())
-<class 'pandas.core.frame.DataFrame'>
-RangeIndex: 1000 entries, 0 to 999
-Data columns (total 4 columns)`,
-      isError: false
-    };
+    const csvMatch = code.match(/pd\.read_csv\s*\(\s*["']([^"']+)["']\s*\)/);
+    const filename = csvMatch ? csvMatch[1] : "data.csv";
+    output += `>>> Loaded ${filename}\n`;
+    output += `>>> DataFrame shape: (1000, 4)\n`;
+    if (code.includes(".head()")) {
+      output += `>>> Showing first 5 rows:\n   id  col_a  col_b  col_c\n0   1   0.23   1.45   True\n1   2   0.67   2.31   False\n`;
+    }
   }
 
   if (code.includes("train_test_split")) {
-    return {
-      output: `>>> X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2)
->>> print(f"Training samples: {len(X_train)}")
-Training samples: 800
->>> print(f"Testing samples: {len(X_test)}")
-Testing samples: 200`,
-      isError: false
-    };
+    output += `>>> Data split complete\n`;
+    output += `>>> Training samples: 800\n`;
+    output += `>>> Testing samples: 200\n`;
   }
 
-  if (code.includes("RandomForestClassifier")) {
-    return {
-      output: `>>> rf_model = RandomForestClassifier(n_estimators=100)
->>> rf_model.fit(X_train, y_train)
-RandomForestClassifier(n_estimators=100)
->>> print("Model training complete!")
-Model training complete!`,
-      isError: false
-    };
+  if (code.includes("RandomForestClassifier") || code.includes("RandomForestRegressor")) {
+    output += `>>> RandomForest model initialized\n`;
+    if (code.includes(".fit(")) {
+      output += `>>> Model training complete (100 trees)\n`;
+    }
   }
 
-  if (code.includes("accuracy_score")) {
-    return {
-      output: `>>> predictions = model.predict(X_test)
->>> accuracy = accuracy_score(y_test, predictions)
->>> print(f"Accuracy: {accuracy:.2%}")
-Accuracy: 87.50%
-
->>> print(classification_report(y_test, predictions))
-              precision    recall  f1-score   support
-     Class 0       0.85      0.90      0.87       100
-     Class 1       0.88      0.82      0.85       100
-    accuracy                           0.88       200`,
-      isError: false
-    };
+  if (code.includes("accuracy_score") || code.includes("classification_report")) {
+    output += `>>> Model Evaluation:\n`;
+    output += `>>> Accuracy: 87.50%\n`;
+    output += `>>> Precision: 0.88\n`;
+    output += `>>> Recall: 0.86\n`;
   }
 
-  if (code.includes("tiktoken")) {
-    return {
-      output: `>>> text = "Hello, how are you today?"
->>> tokens = enc.encode(text)
->>> print(f"Text: {text}")
-Text: Hello, how are you today?
->>> print(f"Tokens: {tokens}")
-Tokens: [9906, 11, 1268, 527, 499, 3432, 30]
->>> print(f"Token count: {len(tokens)}")
-Token count: 7`,
-      isError: false
-    };
+  if (code.includes("tiktoken") || code.includes("encode")) {
+    output += `>>> Tokenization complete\n`;
+    output += `>>> Token count: 7\n`;
+    output += `>>> Tokens: [9906, 11, 1268, 527, 499, 3432, 30]\n`;
   }
 
-  if (code.includes("openai.ChatCompletion") || code.includes("openai.api_key")) {
-    return {
-      output: `>>> response = openai.ChatCompletion.create(...)
->>> print(response.choices[0].message.content)
-"An API (Application Programming Interface) is a set of rules and protocols that allows different software applications to communicate with each other."`,
-      isError: false
-    };
+  if (code.includes("openai") && (code.includes("ChatCompletion") || code.includes("chat.completions"))) {
+    output += `>>> OpenAI API request sent\n`;
+    output += `>>> Response received (245ms)\n`;
+    output += `>>> Tokens used: 156\n`;
   }
 
   if (code.includes("torch.cuda")) {
+    output += `>>> CUDA available: True\n`;
+    output += `>>> GPU: NVIDIA RTX 4090\n`;
+    output += `>>> Memory: 24GB\n`;
+  }
+
+  if (code.includes("FastAPI") || code.includes("@app.")) {
+    output += `>>> FastAPI server initialized\n`;
+    output += `>>> Endpoints registered\n`;
+    output += `>>> Docs available at: /docs\n`;
+  }
+
+  if (code.includes("locust") || code.includes("HttpUser")) {
+    output += `>>> Load test configuration ready\n`;
+    output += `>>> Users: 100, Spawn rate: 10/s\n`;
+  }
+
+  // Add any print statements found
+  if (prints.length > 0) {
+    output += prints.map(p => `>>> ${p}`).join('\n') + '\n';
+  }
+
+  // If we have specific output, return it
+  if (output.trim()) {
     return {
-      output: `>>> print(f"CUDA available: {torch.cuda.is_available()}")
-CUDA available: True
->>> print(f"GPU count: {torch.cuda.device_count()}")
-GPU count: 1
->>> print(f"GPU name: {torch.cuda.get_device_name(0)}")
-GPU name: NVIDIA RTX 4090`,
+      output: output.trim(),
       isError: false
     };
   }
 
-  if (code.includes("locust")) {
-    return {
-      output: `[2024-01-20 10:30:00] Starting Locust...
-[2024-01-20 10:30:01] Spawning 100 users at 10 users/second
-[2024-01-20 10:30:11] All users spawned
-[2024-01-20 10:31:00] Statistics:
-  Requests: 2,847
-  Failures: 12 (0.42%)
-  Median response time: 245ms
-  95th percentile: 890ms`,
-      isError: false
-    };
-  }
-
-  if (code.includes("FastAPI")) {
-    return {
-      output: `INFO:     Started server process [12345]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000
-
-OpenAPI docs available at: http://localhost:8000/docs`,
-      isError: false
-    };
-  }
-
+  // Default output for code that runs but doesn't match patterns
   if (language === "yaml") {
     return {
-      output: `horizontalpodautoscaler.autoscaling/ai-model-hpa created
-Deployment ai-model-deployment configured for autoscaling
-  Min replicas: 2
-  Max replicas: 10
-  Target CPU utilization: 70%`,
+      output: `Configuration parsed successfully.\nAll fields validated.`,
       isError: false
     };
   }
 
   if (language === "typescript" || language === "javascript") {
     return {
-      output: `> AIClient initialized successfully
-> API Key: sk-...xxxx (hidden)
-> Base URL: https://api.example.com/v1
-> Ready to make predictions`,
-      isError: false
-    };
-  }
-
-  if (code.includes("print")) {
-    return {
-      output: `Code executed successfully.\n>>> Output displayed above`,
+      output: `> Script executed successfully\n> No errors encountered`,
       isError: false
     };
   }
 
   return {
-    output: `Code executed successfully.
-Output varies based on your environment and data.`,
+    output: `Code executed successfully.\n${lines.length} statement(s) processed.\nNo output to display.`,
     isError: false
   };
 }
