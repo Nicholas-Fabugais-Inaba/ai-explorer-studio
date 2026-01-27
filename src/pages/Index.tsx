@@ -5,6 +5,7 @@ import { ModuleGrid } from "@/components/ModuleGrid";
 import { ConceptViewer } from "@/components/ConceptViewer";
 import { InteractivePlayground } from "@/components/InteractivePlayground";
 import { InfrastructureOverview } from "@/components/InfrastructureOverview";
+import { AIChatbot } from "@/components/AIChatbot";
 
 const Index = () => {
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
@@ -71,6 +72,9 @@ const Index = () => {
           </footer>
         </>
       )}
+      
+      {/* AI Chatbot */}
+      <AIChatbot />
     </div>
   );
 };
