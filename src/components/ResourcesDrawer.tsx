@@ -46,9 +46,9 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
                 badge: "Deep Learning",
               },
               {
-                title: "Hugging Face",
-                description: "Transformers and LLM resources",
-                url: "https://huggingface.co/docs",
+                title: "Hugging Face Transformers",
+                description: "State-of-the-art NLP models and tutorials",
+                url: "https://huggingface.co/docs/transformers",
                 badge: "LLMs",
               },
             ]}
@@ -72,9 +72,9 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
                 badge: "Free",
               },
               {
-                title: "3Blue1Brown Neural Networks",
-                description: "Visual explanations of neural networks",
-                url: "https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi",
+                title: "StatQuest Neural Networks",
+                description: "Clear, step-by-step neural network explanations",
+                url: "https://www.youtube.com/playlist?list=PLblh5JKOoLUIxGDQs4LFFD--41Vzf-ME1",
                 badge: "Beginner",
               },
             ]}
