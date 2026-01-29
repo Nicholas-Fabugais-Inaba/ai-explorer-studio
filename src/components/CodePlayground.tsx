@@ -239,11 +239,11 @@ function getSimulatedOutput(code: string, language: string): SimulatedResult {
   const numbers = code.match(/\d+\.?\d*/g) || [];
   const hasNumbers = numbers.length > 0;
   
-  // Check for data arrays - detect if X or Y data exists
-  const xMatch = code.match(/[xX]\s*=\s*\[\s*([^\]]*)\s*\]/);
+  // Check for data arrays - detect if X or Y data exists (handles both nested [[1],[2]] and flat [1,2] formats)
+  const xMatch = code.match(/[xX]\s*=\s*\[\s*([^\]]*(?:\[[^\]]*\][^\]]*)*)\s*\]/);
   const yMatch = code.match(/[yY]\s*=\s*\[\s*([^\]]*)\s*\]/);
-  const hasXData = xMatch && xMatch[1].trim().length > 0;
-  const hasYData = yMatch && yMatch[1].trim().length > 0;
+  const hasXData = xMatch && xMatch[1].trim().length > 0 && xMatch[1].trim() !== '';
+  const hasYData = yMatch && yMatch[1].trim().length > 0 && yMatch[1].trim() !== '';
 
   // Build contextual output based on what's in the code
   const lines = code.split('\n').filter(line => line.trim() && !line.trim().startsWith('#') && !line.trim().startsWith('//'));
@@ -273,7 +273,19 @@ function getSimulatedOutput(code: string, language: string): SimulatedResult {
     }
 
     // Calculate dynamic coefficients based on actual data
-    const xValues = xMatch ? xMatch[1].split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n)) : [];
+    // Handle both nested [[1],[2],[3]] and flat [1,2,3] formats
+    let xValues: number[] = [];
+    if (xMatch) {
+      const xContent = xMatch[1];
+      // Check if it's nested array format [[1],[2],[3]]
+      const nestedMatch = xContent.match(/\[(\d+\.?\d*)\]/g);
+      if (nestedMatch) {
+        xValues = nestedMatch.map(m => parseFloat(m.replace(/[\[\]]/g, ''))).filter(n => !isNaN(n));
+      } else {
+        // Flat format [1,2,3]
+        xValues = xContent.split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n));
+      }
+    }
     const yValues = yMatch ? yMatch[1].split(',').map(n => parseFloat(n.trim())).filter(n => !isNaN(n)) : [];
     
     if (xValues.length !== yValues.length) {

@@ -109,9 +109,9 @@ export const moduleConceptsMap: Record<string, ConceptCard[]> = {
       codeExample: `# Simple ML in Python
 from sklearn.linear_model import LinearRegression
 
-# Your data
-X = [[1], [2], [3], [4]]  # Features
-y = [2, 4, 6, 8]          # What we want to predict
+# Your data (simple format)
+X = [1, 2, 3, 4]  # Features (input values)
+y = [2, 4, 6, 8]  # Target (what we predict)
 
 # Create and train model
 model = LinearRegression()
@@ -119,7 +119,7 @@ model.fit(X, y)
 
 # Make prediction
 prediction = model.predict([[5]])
-print(prediction)  # Output: [10]`,
+print(f"Prediction for X=5: {prediction[0]}")`,
       language: "python",
     },
     {

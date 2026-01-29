@@ -6,6 +6,7 @@ import { ConceptViewer } from "@/components/ConceptViewer";
 import { InteractivePlayground } from "@/components/InteractivePlayground";
 import { InfrastructureOverview } from "@/components/InfrastructureOverview";
 import { AIChatbot } from "@/components/AIChatbot";
+import { AnalyticsScript } from "@/components/AnalyticsScript";
 import { Linkedin, Mail, Github, Instagram } from "lucide-react";
 
 const Index = () => {
@@ -35,6 +36,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <AnalyticsScript />
       <Header 
         activeModule={selectedModule ?? undefined} 
         onNavigate={handleNavigate}
