@@ -1,73 +1,121 @@
-# Welcome to your Lovable project
+# AI Academy
 
-## Project info
+An interactive educational platform designed to make artificial intelligence and machine learning accessible to everyone—from complete beginners to those looking to deepen their technical knowledge.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+🌐 **Live Demo**: [AI Academy](https://id-preview--fa87f1c1-780e-4580-8454-d7d176024120.lovable.app)
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+### 📚 Comprehensive Learning Modules
+- **AI Fundamentals** - Core concepts, history, and types of AI (8 min)
+- **Machine Learning Models** - Supervised, unsupervised, and reinforcement learning (10 min)
+- **Large Language Models** - Transformer architecture, tokenization, and prompt engineering (12 min)
+- **AI Infrastructure** - Deployment, scaling, and MLOps best practices (10 min)
+- **Security & Reliability** - Input validation, stress testing, and safety measures (10 min)
+- **Real-World Integration** - Production deployment and API integration patterns (15 min)
 
-**Use Lovable**
+### 💻 Interactive Code Playground
+A mini-IDE experience where you can:
+- Edit code examples directly in the browser
+- Run code and see simulated output in real-time
+- Experiment with Python and TypeScript examples
+- Copy your edited code for use in external environments
+- Learn from realistic error messages and debugging
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### 🤖 AI Tutor Assistant
+An intelligent chatbot that:
+- Understands all platform content and curriculum
+- Explains concepts in depth when asked
+- Provides code examples on demand
+- Remembers conversation context within sessions
+- Recommends external resources for further learning
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🎨 Modern, Accessible Design
+- Dark theme with "Electric Cyan" accent colors
+- Smooth animations and transitions
+- Responsive design for all devices
+- Accessibility-focused interface
 
-**Use your preferred IDE**
+## 🛠️ Tech Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Backend**: Supabase Edge Functions
+- **AI**: Lovable AI Gateway (GPT-4 powered tutor)
+- **State Management**: TanStack Query
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Getting Started
 
-Follow these steps:
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+# Clone the repository
+git clone https://github.com/Nicholas-Fabugais-Inaba/ai-academy.git
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Navigate to project directory
+cd ai-academy
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env` file in the root directory:
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📖 Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── components/          # React components
+│   ├── ui/             # shadcn/ui base components
+│   ├── AIChatbot.tsx   # AI tutor assistant
+│   ├── CodePlayground.tsx  # Interactive code editor
+│   ├── ConceptViewer.tsx   # Module content viewer
+│   └── ...
+├── data/
+│   └── learningData.ts # Curriculum content
+├── pages/
+│   └── Index.tsx       # Main application page
+└── integrations/
+    └── supabase/       # Backend integration
+```
 
-This project is built with:
+## 🤝 Contributing
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## How can I deploy this project?
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 📬 Contact
 
-## Can I connect a custom domain to my Lovable project?
+**Nicholas Fabugais-Inaba**
 
-Yes, you can!
+- LinkedIn: [nicholas-fabugais-inaba](https://www.linkedin.com/in/nicholas-fabugais-inaba/)
+- GitHub: [Nicholas-Fabugais-Inaba](https://github.com/Nicholas-Fabugais-Inaba)
+- Instagram: [@nicholas.fi](https://www.instagram.com/nicholas.fi)
+- Email: nfabugaisinaba@gmail.com
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📄 License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+Built with ❤️ using [Lovable](https://lovable.dev)
