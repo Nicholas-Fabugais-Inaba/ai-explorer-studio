@@ -72,9 +72,9 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
                 badge: "Free",
               },
               {
-                title: "3Blue1Brown Neural Networks",
-                description: "Visual, intuitive explanations of neural networks",
-                url: "https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi",
+                title: "MIT Deep Learning",
+                description: "MIT's introduction to deep learning and neural networks",
+                url: "https://www.youtube.com/playlist?list=PLtBw6njQRU-rwp5__7C0oIVt26ZgjG9NI",
                 badge: "Beginner",
               },
             ]}
