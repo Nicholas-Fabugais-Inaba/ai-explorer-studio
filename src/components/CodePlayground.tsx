@@ -187,16 +187,13 @@ function getSimulatedOutput(code: string, language: string): SimulatedResult {
     };
   }
 
-  // Check for incomplete statements (missing colons in Python)
-  if (language === "python") {
-    const controlStatements = code.match(/\b(if|elif|else|for|while|def|class|try|except|finally|with)\b[^:]*$/gm);
-    if (controlStatements) {
-      return {
-        output: `SyntaxError: expected ':'\n  Missing colon after control statement\n  ${controlStatements[0]}`,
-        isError: true
-      };
-    }
-  }
+  // REMOVED: Python syntax checking for control statements
+  // The simple regex-based approach was causing false positives for:
+  // - Keywords inside comments (e.g., "# Check for missing values")
+  // - Keywords inside strings (e.g., 'prompt = """...with context..."""')
+  // - Keywords that are part of longer words
+  // A proper syntax check would require a full Python parser, which is
+  // beyond the scope of this simulated environment.
 
   // Check for undefined variables (simple heuristic)
   if (code.includes("undefined_var") || code.includes("unknownVariable")) {

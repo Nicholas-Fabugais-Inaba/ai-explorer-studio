@@ -72,9 +72,9 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
                 badge: "Free",
               },
               {
-                title: "Stanford CS229: Machine Learning",
-                description: "Stanford's comprehensive machine learning course by Andrew Ng",
-                url: "https://www.youtube.com/playlist?list=PLoROMvodv4rMiGQp3WXShtMGgzqpfVfbU",
+                title: "Sentdex Neural Networks",
+                description: "Practical neural network tutorials from scratch",
+                url: "https://www.youtube.com/playlist?list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3",
                 badge: "Beginner",
               },
             ]}

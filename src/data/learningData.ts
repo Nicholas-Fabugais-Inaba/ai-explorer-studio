@@ -1,17 +1,48 @@
+/**
+ * learningData.ts
+ * 
+ * Core curriculum data for AI Academy. Contains all learning modules
+ * and their associated concepts, code examples, and visual elements.
+ * 
+ * STRUCTURE:
+ * - learningModules: Array of module metadata (title, description, topics)
+ * - moduleConceptsMap: Detailed content for each module, keyed by module ID
+ * 
+ * ADDING NEW CONTENT:
+ * 1. Add module to learningModules array
+ * 2. Add corresponding concepts to moduleConceptsMap using the module ID as key
+ * 3. Each concept can include:
+ *    - title: Display title
+ *    - content: Markdown-formatted explanation
+ *    - codeExample: Interactive code (opens in CodePlayground)
+ *    - language: Code language (python, typescript, yaml)
+ *    - visual: Visual diagram type (network, pipeline, transformer, etc.)
+ * 
+ * @see src/components/ConceptViewer.tsx - Renders these concepts
+ * @see src/components/CodePlayground.tsx - Runs the code examples
+ */
+
 import { Brain, Zap, Shield, Code2, Database, Cloud } from "lucide-react";
 
+/**
+ * Module metadata interface
+ */
 export interface LearningModule {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  duration: string;
+  id: string;              // Unique identifier, used as key in moduleConceptsMap
+  title: string;           // Display title
+  description: string;     // Brief module description
+  icon: React.ComponentType<{ className?: string }>;  // Lucide icon
+  duration: string;        // Estimated completion time
   difficulty: "Beginner" | "Intermediate" | "Advanced";
-  topics: string[];
-  color: string;
-  progress?: number;
+  topics: string[];        // List of topics covered
+  color: string;           // Theme color (primary, accent, success)
+  progress?: number;       // User progress (0-100)
 }
 
+/**
+ * All available learning modules
+ * Order matters - displayed in this sequence
+ */
 export const learningModules: LearningModule[] = [
   {
     id: "fundamentals",
@@ -81,16 +112,26 @@ export const learningModules: LearningModule[] = [
   },
 ];
 
+/**
+ * Concept card interface for detailed lesson content
+ */
 export interface ConceptCard {
-  id: string;
-  title: string;
-  content: string;
-  codeExample?: string;
-  language?: string;
+  id: string;              // Unique concept identifier
+  title: string;           // Lesson title
+  content: string;         // Markdown content
+  codeExample?: string;    // Interactive code example
+  language?: string;       // Code language for syntax highlighting
   visual?: "network" | "data-flow" | "layers" | "pipeline" | "transformer" | "infrastructure" | "security" | "integration";
 }
 
+/**
+ * Detailed content for each module
+ * Key = module ID from learningModules
+ */
 export const moduleConceptsMap: Record<string, ConceptCard[]> = {
+  // ============================================================
+  // MODULE: AI Fundamentals
+  // ============================================================
   fundamentals: [
     {
       id: "what-is-ai",
@@ -106,6 +147,8 @@ export const moduleConceptsMap: Record<string, ConceptCard[]> = {
       id: "how-ml-works",
       title: "How Machine Learning Works",
       content: "Machine learning follows a simple cycle:\n\n1. **Collect Data** - Gather examples of what you want to predict\n2. **Prepare Data** - Clean and format your data\n3. **Choose a Model** - Select an algorithm suited to your problem\n4. **Train** - Feed data to the model so it learns patterns\n5. **Evaluate** - Test the model on new data\n6. **Deploy** - Use the model in your application",
+      // NOTE: Code example uses simple flat arrays [1, 2, 3, 4] format
+      // The CodePlayground's getSimulatedOutput handles this format
       codeExample: `# Simple ML in Python
 from sklearn.linear_model import LinearRegression
 
@@ -129,6 +172,10 @@ print(f"Prediction for X=5: {prediction[0]}")`,
       visual: "network",
     },
   ],
+
+  // ============================================================
+  // MODULE: Building ML Models
+  // ============================================================
   "ml-models": [
     {
       id: "data-collection",
@@ -136,16 +183,13 @@ print(f"Prediction for X=5: {prediction[0]}")`,
       content: "Every ML project starts with data. The quality of your model depends entirely on the quality of your data.\n\n• **Structured Data**: Tables, spreadsheets, databases (customer records, sales data)\n• **Unstructured Data**: Images, text, audio, video\n• **Labeled Data**: Data with known answers for supervised learning\n• **Unlabeled Data**: Raw data without labels for unsupervised learning\n\nThe golden rule: garbage in, garbage out. Spend 80% of your time on data quality.",
       codeExample: `import pandas as pd
 
-# Load structured data
+# Load structured data from CSV file
 data = pd.read_csv('customer_data.csv')
 
-# Quick data inspection
+# Quick data inspection methods
 print(data.head())         # First 5 rows
-print(data.info())         # Column types & missing values
-print(data.describe())     # Statistical summary
-
-# Check for missing values
-print(data.isnull().sum())`,
+print(data.info())         # Column types
+print(data.describe())     # Statistical summary`,
       language: "python",
     },
     {
@@ -155,21 +199,17 @@ print(data.isnull().sum())`,
       codeExample: `from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 
-# Handle missing values
-data.fillna(data.mean(), inplace=True)
-
-# Encode categorical variables
-le = LabelEncoder()
-data['category'] = le.fit_transform(data['category'])
-
-# Scale numerical features
+# Scale numerical features to standard range
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Split into train/test
+# Split into train/test sets (80/20 split)
 X_train, X_test, y_train, y_test = train_test_split(
     X_scaled, y, test_size=0.2, random_state=42
-)`,
+)
+
+print(f"Training samples: {len(X_train)}")
+print(f"Testing samples: {len(X_test)}")`,
       language: "python",
     },
     {
@@ -179,15 +219,15 @@ X_train, X_test, y_train, y_test = train_test_split(
       codeExample: `from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 
-# Option 1: Random Forest
+# Option 1: Random Forest (good for complex patterns)
 rf_model = RandomForestClassifier(n_estimators=100)
 rf_model.fit(X_train, y_train)
 
-# Option 2: Logistic Regression
+# Option 2: Logistic Regression (good for simple patterns)
 lr_model = LogisticRegression()
 lr_model.fit(X_train, y_train)
 
-# Training complete! Models have learned patterns.`,
+print("Models trained successfully!")`,
       language: "python",
       visual: "pipeline",
     },
@@ -204,16 +244,15 @@ predictions = model.predict(X_test)
 accuracy = accuracy_score(y_test, predictions)
 print(f"Accuracy: {accuracy:.2%}")
 
-# Detailed report
-print(classification_report(y_test, predictions))
-
-# Output example:
-#               precision    recall  f1-score
-# Class 0          0.85      0.90      0.87
-# Class 1          0.88      0.82      0.85`,
+# Detailed classification report
+print(classification_report(y_test, predictions))`,
       language: "python",
     },
   ],
+
+  // ============================================================
+  // MODULE: Understanding LLMs
+  // ============================================================
   "llm-basics": [
     {
       id: "tokenization",
@@ -222,6 +261,7 @@ print(classification_report(y_test, predictions))
       codeExample: `# Using tiktoken (OpenAI's tokenizer)
 import tiktoken
 
+# Get the encoding for GPT models
 enc = tiktoken.get_encoding("cl100k_base")
 
 text = "Hello, how are you today?"
@@ -229,12 +269,7 @@ tokens = enc.encode(text)
 
 print(f"Text: {text}")
 print(f"Tokens: {tokens}")
-print(f"Token count: {len(tokens)}")
-# Tokens: [9906, 11, 1268, 527, 499, 3432, 30]
-
-# Decode back
-decoded = enc.decode(tokens)
-print(f"Decoded: {decoded}")`,
+print(f"Token count: {len(tokens)}")`,
       language: "python",
     },
     {
@@ -247,22 +282,22 @@ print(f"Decoded: {decoded}")`,
       id: "prompting",
       title: "The Art of Prompting",
       content: "Prompting is how you communicate with LLMs. Better prompts = better results:\n\n1. **Be Specific**: 'Write a formal email' vs 'Write something'\n2. **Provide Context**: Include relevant background information\n3. **Use Examples**: Show the format you want (few-shot prompting)\n4. **Define the Role**: 'You are an expert Python developer...'\n5. **Set Constraints**: 'In 100 words or less...'",
-      codeExample: `# Basic prompt
-prompt = "What is machine learning?"
+      codeExample: `# Basic prompt - too vague
+basic = "What is machine learning?"
 
-# Better prompt with context
-prompt = """You are an AI teacher explaining concepts 
+# Better prompt - specific and constrained
+better = """You are an AI teacher explaining concepts 
 to beginners. Explain machine learning in simple terms 
-with a real-world analogy. Keep it under 100 words."""
+using a real-world analogy. Keep it under 100 words."""
 
-# Few-shot prompting
-prompt = """Convert these sentences to formal English:
+# Few-shot prompting - show examples first
+few_shot = """Convert casual to formal English:
 
 Casual: gonna grab some coffee
 Formal: I am going to get some coffee.
 
 Casual: wanna hang out later?
-Formal: Would you like to spend time together later?
+Formal: Would you like to spend time together?
 
 Casual: this is kinda cool
 Formal:"""`,
@@ -273,11 +308,12 @@ Formal:"""`,
       title: "Integrating LLM APIs",
       content: "Most applications use LLMs via APIs. Here's what you need to know:\n\n• **API Keys**: Your authentication credentials (keep them secret!)\n• **Endpoints**: URLs where you send requests\n• **Rate Limits**: Max requests per minute/day\n• **Token Limits**: Max input + output tokens per request\n• **Costs**: Usually charged per 1K tokens ($0.001 - $0.06)",
       codeExample: `import openai
+import os
 
-# Set your API key (use environment variables!)
+# Set API key from environment variable
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Make a completion request
+# Make a chat completion request
 response = openai.ChatCompletion.create(
     model="gpt-4",
     messages=[
@@ -292,6 +328,10 @@ print(response.choices[0].message.content)`,
       language: "python",
     },
   ],
+
+  // ============================================================
+  // MODULE: AI Infrastructure
+  // ============================================================
   infrastructure: [
     {
       id: "compute-requirements",
@@ -305,20 +345,17 @@ print(response.choices[0].message.content)`,
       content: "CPUs and GPUs are built for different tasks:\n\n**CPU (Central Processing Unit)**\n• Great at sequential tasks\n• Handles complex logic well\n• Better for small models, preprocessing\n• Cheaper and more available\n\n**GPU (Graphics Processing Unit)**\n• Massive parallelism (thousands of cores)\n• Optimized for matrix operations\n• Essential for training deep learning\n• More expensive but much faster for AI",
       codeExample: `import torch
 
-# Check if GPU is available
-print(f"CUDA available: {torch.cuda.is_available()}")
-print(f"GPU count: {torch.cuda.device_count()}")
+# Check GPU availability
+cuda_available = torch.cuda.is_available()
+gpu_count = torch.cuda.device_count()
 
-# Move model to GPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"CUDA available: {cuda_available}")
+print(f"GPU count: {gpu_count}")
+
+# Move model to GPU for faster training
+device = torch.device("cuda" if cuda_available else "cpu")
 model = model.to(device)
-
-# Move data to GPU
-inputs = inputs.to(device)
-labels = labels.to(device)
-
-# Training now happens on GPU (10-100x faster!)
-outputs = model(inputs)`,
+inputs = inputs.to(device)`,
       language: "python",
     },
     {
@@ -336,20 +373,18 @@ model = PyTorchModel(
     py_version='py310'
 )
 
-# Deploy to endpoint
+# Deploy to GPU endpoint
 predictor = model.deploy(
-    instance_type='ml.g4dn.xlarge',  # GPU instance
+    instance_type='ml.g4dn.xlarge',
     initial_instance_count=1
-)
-
-# Now accessible via API!`,
+)`,
       language: "python",
     },
     {
       id: "scaling-strategies",
       title: "Scaling Your AI System",
       content: "As usage grows, you need to scale intelligently:\n\n• **Horizontal Scaling**: Add more servers (load balance requests)\n• **Vertical Scaling**: Use bigger machines (more RAM/GPU)\n• **Auto-scaling**: Automatically adjust to traffic\n• **Model Optimization**: Quantization, pruning, distillation\n• **Caching**: Store frequent responses\n• **Batching**: Group requests for efficiency",
-      codeExample: `# Kubernetes deployment with auto-scaling
+      codeExample: `# Kubernetes auto-scaling configuration
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -371,6 +406,10 @@ spec:
       language: "yaml",
     },
   ],
+
+  // ============================================================
+  // MODULE: AI Security & Testing
+  // ============================================================
   security: [
     {
       id: "security-threats",
@@ -382,14 +421,16 @@ spec:
       id: "stress-testing",
       title: "Stress Testing AI Systems",
       content: "Before production, test your system's limits:\n\n1. **Load Testing**: Can it handle expected traffic?\n2. **Spike Testing**: What happens with sudden traffic bursts?\n3. **Endurance Testing**: Does performance degrade over time?\n4. **Edge Cases**: Unusual inputs, empty inputs, very long inputs\n5. **Failure Scenarios**: What if the model server goes down?",
-      codeExample: `# Using locust for load testing
+      codeExample: `# Load testing with Locust framework
 from locust import HttpUser, task, between
 
 class AIModelUser(HttpUser):
+    """Simulates users hitting the AI prediction endpoint"""
     wait_time = between(1, 3)
     
     @task
     def predict(self):
+        """Test the main prediction endpoint"""
         self.client.post("/api/predict", json={
             "text": "Test input for the model",
             "max_tokens": 100
@@ -397,9 +438,10 @@ class AIModelUser(HttpUser):
     
     @task
     def health_check(self):
+        """Test the health check endpoint"""
         self.client.get("/health")
 
-# Run: locust -f locustfile.py --users 100 --spawn-rate 10`,
+# Run with: locust -f locustfile.py --users 100`,
       language: "python",
     },
     {
@@ -410,6 +452,7 @@ class AIModelUser(HttpUser):
 from typing import Optional
 
 class PredictionRequest(BaseModel):
+    """Validated request model with security checks"""
     text: str
     max_tokens: int = 100
     temperature: float = 0.7
@@ -417,13 +460,9 @@ class PredictionRequest(BaseModel):
     @validator('text')
     def validate_text(cls, v):
         if len(v) > 10000:
-            raise ValueError('Text too long (max 10000 chars)')
+            raise ValueError('Text too long (max 10000)')
         if len(v) < 1:
             raise ValueError('Text cannot be empty')
-        # Remove potential injection patterns
-        dangerous = ['<|', '|>', 'IGNORE PREVIOUS']
-        for d in dangerous:
-            v = v.replace(d, '')
         return v
     
     @validator('max_tokens')
@@ -441,11 +480,12 @@ class PredictionRequest(BaseModel):
 from prometheus_client import Counter, Histogram
 import time
 
-# Metrics
-REQUEST_COUNT = Counter('ai_requests_total', 'Total requests', ['status'])
+# Define metrics for monitoring
+REQUEST_COUNT = Counter('ai_requests_total', 'Total AI requests', ['status'])
 REQUEST_LATENCY = Histogram('ai_request_latency_seconds', 'Request latency')
 
 def predict(request):
+    """Prediction function with monitoring"""
     start_time = time.time()
     
     try:
@@ -457,11 +497,14 @@ def predict(request):
         logging.error(f"Prediction failed: {e}")
         raise
     finally:
-        latency = time.time() - start_time
-        REQUEST_LATENCY.observe(latency)`,
+        REQUEST_LATENCY.observe(time.time() - start_time)`,
       language: "python",
     },
   ],
+
+  // ============================================================
+  // MODULE: Real-World Integration
+  // ============================================================
   integration: [
     {
       id: "api-design",
@@ -483,15 +526,13 @@ class PredictResponse(BaseModel):
 
 @app.post("/v1/predict", response_model=PredictResponse)
 async def predict(request: PredictRequest):
-    try:
-        result = await model.generate(request.text)
-        return PredictResponse(
-            prediction=result.text,
-            confidence=result.confidence,
-            tokens_used=result.tokens
-        )
-    except ModelError as e:
-        raise HTTPException(status_code=500, detail=str(e))`,
+    """Main prediction endpoint with structured response"""
+    result = await model.generate(request.text)
+    return PredictResponse(
+        prediction=result.text,
+        confidence=result.confidence,
+        tokens_used=result.tokens
+    )`,
       language: "python",
     },
     {
@@ -533,22 +574,22 @@ class AIClient {
       content: "Follow these patterns for robust AI integration:\n\n1. **Graceful Degradation**: Fallback when AI is unavailable\n2. **Caching**: Cache identical requests\n3. **Timeouts**: Don't wait forever for responses\n4. **Circuit Breaker**: Stop calling failing services\n5. **Retry with Backoff**: Exponential delay between retries\n6. **Feature Flags**: Enable/disable AI features easily",
       codeExample: `import { CircuitBreaker } from 'opossum';
 
-// Circuit breaker configuration
+// Circuit breaker prevents cascading failures
 const breakerOptions = {
-  timeout: 10000,      // 10 second timeout
+  timeout: 10000,             // 10 second timeout
   errorThresholdPercentage: 50,  // Open if 50% fail
-  resetTimeout: 30000  // Try again after 30 seconds
+  resetTimeout: 30000         // Try again after 30 seconds
 };
 
 const breaker = new CircuitBreaker(aiClient.predict, breakerOptions);
 
-// Fallback when circuit is open
+// Provide fallback when circuit is open
 breaker.fallback(() => ({
   prediction: "AI service temporarily unavailable",
   isFallback: true
 }));
 
-// Use it
+// Use the circuit breaker
 async function getPrediction(text: string) {
   return breaker.fire(text);
 }`,
@@ -563,5 +604,5 @@ async function getPrediction(text: string) {
   ],
 };
 
-// For backwards compatibility
+// For backwards compatibility with older code
 export const fundamentalsConcepts = moduleConceptsMap.fundamentals;
