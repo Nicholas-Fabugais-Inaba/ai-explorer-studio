@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Clock, BookOpen, MessageCircle, Code2, Shield, Sparkles, GraduationCap, Rocket } from "lucide-react";
+import platformDemo from "@/assets/platform-demo.mp4";
 
 interface VideoModalProps {
   open: boolean;
@@ -10,7 +11,7 @@ interface VideoModalProps {
 export const VideoModal = ({ open, onOpenChange }: VideoModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-background border-border">
+      <DialogContent className="max-w-4xl bg-background border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
             <Badge variant="primary">Welcome</Badge>
@@ -29,6 +30,18 @@ export const VideoModal = ({ open, onOpenChange }: VideoModalProps) => {
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Platform Demo Video */}
+          <div className="rounded-xl overflow-hidden border border-primary/30 bg-secondary/30">
+            <video
+              src={platformDemo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full aspect-video object-cover"
+            />
+          </div>
+
           {/* Hero introduction */}
           <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20">
             <div className="flex items-start gap-3">
