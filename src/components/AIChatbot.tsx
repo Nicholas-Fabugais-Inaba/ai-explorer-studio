@@ -323,45 +323,61 @@ export const AIChatbot = () => {
                     {message.role === "assistant" ? (
                       // Render assistant messages as Markdown
                       <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <ReactMarkdown
-                          components={{
-                            // Custom code block renderer with copy button
-                            code({ className, children, ...props }) {
-                              const isInline = !className;
-                              const code = String(children).replace(/\n$/, "");
-                              
-                              if (isInline) {
+                        {/* Show typing indicator when streaming and content is empty or very short */}
+                        {isLoading && index === messages.length - 1 && message.content.length < 3 ? (
+                          <div className="flex items-center gap-2 py-1">
+                            <div className="flex gap-1">
+                              <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                              <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                              <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                            </div>
+                            <span className="text-xs text-muted-foreground">Thinking...</span>
+                          </div>
+                        ) : (
+                          <ReactMarkdown
+                            components={{
+                              // Custom code block renderer with copy button
+                              code({ className, children, ...props }) {
+                                const isInline = !className;
+                                const code = String(children).replace(/\n$/, "");
+                                
+                                if (isInline) {
+                                  return (
+                                    <code className="bg-background/50 px-1 py-0.5 rounded text-xs" {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                }
+                                
                                 return (
-                                  <code className="bg-background/50 px-1 py-0.5 rounded text-xs" {...props}>
-                                    {children}
-                                  </code>
+                                  <div className="relative my-2">
+                                    <pre className="bg-background/80 rounded-lg p-3 overflow-x-auto text-xs">
+                                      <code {...props}>{children}</code>
+                                    </pre>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="absolute top-1 right-1 h-6 w-6"
+                                      onClick={() => handleCopyCode(code, index)}
+                                    >
+                                      {copiedIndex === index ? (
+                                        <Check className="w-3 h-3 text-success" />
+                                      ) : (
+                                        <Copy className="w-3 h-3" />
+                                      )}
+                                    </Button>
+                                  </div>
                                 );
-                              }
-                              
-                              return (
-                                <div className="relative my-2">
-                                  <pre className="bg-background/80 rounded-lg p-3 overflow-x-auto text-xs">
-                                    <code {...props}>{children}</code>
-                                  </pre>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute top-1 right-1 h-6 w-6"
-                                    onClick={() => handleCopyCode(code, index)}
-                                  >
-                                    {copiedIndex === index ? (
-                                      <Check className="w-3 h-3 text-success" />
-                                    ) : (
-                                      <Copy className="w-3 h-3" />
-                                    )}
-                                  </Button>
-                                </div>
-                              );
-                            },
-                          }}
-                        >
-                          {message.content || "..."}
-                        </ReactMarkdown>
+                              },
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        )}
+                        {/* Show streaming indicator at the end while still loading */}
+                        {isLoading && index === messages.length - 1 && message.content.length >= 3 && (
+                          <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse ml-0.5 align-middle" />
+                        )}
                       </div>
                     ) : (
                       <p className="text-sm">{message.content}</p>
