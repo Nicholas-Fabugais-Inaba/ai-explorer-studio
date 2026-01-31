@@ -72,9 +72,9 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
                 badge: "Free",
               },
               {
-                title: "Sentdex Neural Networks",
-                description: "Practical neural network tutorials from scratch",
-                url: "https://www.youtube.com/playlist?list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3",
+                title: "freeCodeCamp Neural Networks",
+                description: "Complete deep learning course for beginners",
+                url: "https://www.youtube.com/watch?v=aircAruvnKk&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi",
                 badge: "Beginner",
               },
             ]}
