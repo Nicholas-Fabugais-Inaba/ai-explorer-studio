@@ -374,9 +374,11 @@ export const AIChatbot = () => {
                             {message.content}
                           </ReactMarkdown>
                         )}
-                        {/* Show streaming indicator at the end while still loading */}
+                        {/* Show rotating spinner at the end while still loading */}
                         {isLoading && index === messages.length - 1 && message.content.length >= 3 && (
-                          <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse ml-0.5 align-middle" />
+                          <span className="inline-flex items-center ml-1 align-middle">
+                            <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                          </span>
                         )}
                       </div>
                     ) : (

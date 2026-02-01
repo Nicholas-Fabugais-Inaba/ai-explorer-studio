@@ -1,7 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, ExternalLink, FileText, Video, Github, Globe } from "lucide-react";
+import { BookOpen, ExternalLink, FileText, GraduationCap, Github, Globe } from "lucide-react";
 
 interface ResourcesDrawerProps {
   children: React.ReactNode;
@@ -54,10 +53,10 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
             ]}
           />
 
-          {/* Video Courses */}
+          {/* Courses & Tutorials */}
           <ResourceSection
-            title="Video Courses"
-            icon={<Video className="w-4 h-4" />}
+            title="Courses & Tutorials"
+            icon={<GraduationCap className="w-4 h-4" />}
             resources={[
               {
                 title: "Andrew Ng's ML Course",
@@ -72,10 +71,16 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
                 badge: "Free",
               },
               {
-                title: "Neural Networks Explained",
-                description: "Comprehensive neural network tutorial",
-                url: "https://www.youtube.com/watch?v=jmmW0F0biz0",
-                badge: "Beginner",
+                title: "DeepLearning.AI",
+                description: "Comprehensive AI courses by Andrew Ng",
+                url: "https://www.deeplearning.ai/",
+                badge: "Courses",
+              },
+              {
+                title: "Google AI Education",
+                description: "Free courses and resources from Google",
+                url: "https://ai.google/education/",
+                badge: "Free",
               },
             ]}
           />
