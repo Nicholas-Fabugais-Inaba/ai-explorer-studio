@@ -72,9 +72,9 @@ export const ResourcesDrawer = ({ children }: ResourcesDrawerProps) => {
                 badge: "Free",
               },
               {
-                title: "freeCodeCamp Neural Networks",
-                description: "Complete deep learning course for beginners",
-                url: "https://www.youtube.com/watch?v=aircAruvnKk&list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi",
+                title: "Neural Networks Explained",
+                description: "Comprehensive neural network tutorial",
+                url: "https://www.youtube.com/watch?v=jmmW0F0biz0",
                 badge: "Beginner",
               },
             ]}
