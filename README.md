@@ -2,7 +2,7 @@
 
 An interactive educational platform designed to make artificial intelligence and machine learning accessible to everyone—from complete beginners to those looking to deepen their technical knowledge.
 
-🌐 **Live Demo**: [AI Academy](https://id-preview--fa87f1c1-780e-4580-8454-d7d176024120.lovable.app)
+🌐 **Live Demo**: [AI Academy](https://ai-academy-learning.lovable.app)
 
 ## ✨ Features
 
@@ -111,10 +111,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - GitHub: [Nicholas-Fabugais-Inaba](https://github.com/Nicholas-Fabugais-Inaba)
 - Instagram: [@nicholas.fi](https://www.instagram.com/nicholas.fi)
 - Email: nfabugaisinaba@gmail.com
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
