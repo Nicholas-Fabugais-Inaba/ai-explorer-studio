@@ -5,6 +5,118 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Input validation schemas using Zod-like manual validation
+// Maximum lengths to prevent token exhaustion attacks
+const MAX_MESSAGE_LENGTH = 4000;
+const MAX_MESSAGES_PER_REQUEST = 1;
+const MAX_CONVERSATION_HISTORY = 20;
+
+interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+interface RequestBody {
+  messages: ChatMessage[];
+  conversationHistory?: ChatMessage[];
+}
+
+/**
+ * Validates a single message object
+ */
+function validateMessage(msg: unknown, fieldName: string): { valid: boolean; error?: string; message?: ChatMessage } {
+  if (!msg || typeof msg !== "object") {
+    return { valid: false, error: `${fieldName}: must be an object` };
+  }
+  
+  const msgObj = msg as Record<string, unknown>;
+  
+  if (!msgObj.role || !["user", "assistant", "system"].includes(msgObj.role as string)) {
+    return { valid: false, error: `${fieldName}: role must be 'user', 'assistant', or 'system'` };
+  }
+  
+  if (typeof msgObj.content !== "string") {
+    return { valid: false, error: `${fieldName}: content must be a string` };
+  }
+  
+  if (msgObj.content.length === 0) {
+    return { valid: false, error: `${fieldName}: content cannot be empty` };
+  }
+  
+  if (msgObj.content.length > MAX_MESSAGE_LENGTH) {
+    return { valid: false, error: `${fieldName}: content exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters` };
+  }
+  
+  return { 
+    valid: true, 
+    message: { 
+      role: msgObj.role as "user" | "assistant" | "system", 
+      content: msgObj.content as string 
+    } 
+  };
+}
+
+/**
+ * Validates the entire request body
+ */
+function validateRequest(body: unknown): { valid: boolean; error?: string; data?: RequestBody } {
+  if (!body || typeof body !== "object") {
+    return { valid: false, error: "Request body must be a valid JSON object" };
+  }
+  
+  const bodyObj = body as Record<string, unknown>;
+  
+  // Validate messages array
+  if (!Array.isArray(bodyObj.messages)) {
+    return { valid: false, error: "messages must be an array" };
+  }
+  
+  if (bodyObj.messages.length === 0) {
+    return { valid: false, error: "messages array cannot be empty" };
+  }
+  
+  if (bodyObj.messages.length > MAX_MESSAGES_PER_REQUEST) {
+    return { valid: false, error: `messages array cannot exceed ${MAX_MESSAGES_PER_REQUEST} items` };
+  }
+  
+  const validatedMessages: ChatMessage[] = [];
+  for (let i = 0; i < bodyObj.messages.length; i++) {
+    const result = validateMessage(bodyObj.messages[i], `messages[${i}]`);
+    if (!result.valid) {
+      return { valid: false, error: result.error };
+    }
+    validatedMessages.push(result.message!);
+  }
+  
+  // Validate conversationHistory if present
+  let validatedHistory: ChatMessage[] = [];
+  if (bodyObj.conversationHistory !== undefined) {
+    if (!Array.isArray(bodyObj.conversationHistory)) {
+      return { valid: false, error: "conversationHistory must be an array" };
+    }
+    
+    if (bodyObj.conversationHistory.length > MAX_CONVERSATION_HISTORY) {
+      return { valid: false, error: `conversationHistory cannot exceed ${MAX_CONVERSATION_HISTORY} items` };
+    }
+    
+    for (let i = 0; i < bodyObj.conversationHistory.length; i++) {
+      const result = validateMessage(bodyObj.conversationHistory[i], `conversationHistory[${i}]`);
+      if (!result.valid) {
+        return { valid: false, error: result.error };
+      }
+      validatedHistory.push(result.message!);
+    }
+  }
+  
+  return {
+    valid: true,
+    data: {
+      messages: validatedMessages,
+      conversationHistory: validatedHistory.length > 0 ? validatedHistory : undefined
+    }
+  };
+}
+
 // AI Academy curriculum context for the assistant
 const CURRICULUM_CONTEXT = `
 You are the AI Academy Assistant, an expert AI tutor helping users learn about artificial intelligence and machine learning.
@@ -41,11 +153,35 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, conversationHistory } = await req.json();
+    // Parse and validate request body
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON in request body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const validation = validateRequest(rawBody);
+    if (!validation.valid) {
+      console.log("Request validation failed:", validation.error);
+      return new Response(JSON.stringify({ error: "Invalid request format" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { messages, conversationHistory } = validation.data!;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("LOVABLE_API_KEY is not configured");
+      return new Response(JSON.stringify({ error: "Service configuration error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log("AI Assistant request received:", { messageCount: messages?.length });
@@ -92,6 +228,7 @@ serve(async (req) => {
         });
       }
       
+      // Generic error message - don't expose internal details
       return new Response(JSON.stringify({ error: "AI service temporarily unavailable" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -104,9 +241,12 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
+    // Log detailed error server-side for debugging
     console.error("AI Assistant error:", e);
+    
+    // Return generic error message to client - don't expose internals
     return new Response(JSON.stringify({ 
-      error: e instanceof Error ? e.message : "Unknown error occurred" 
+      error: "Service temporarily unavailable" 
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
