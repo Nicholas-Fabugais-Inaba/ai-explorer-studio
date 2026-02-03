@@ -11,13 +11,14 @@
  * - Copy code functionality
  * - Conversation history (last 10 messages for context)
  * - Quick-start suggestion badges
+ * - Client-side rate limiting and abuse prevention
  * 
  * Backend: Uses Supabase Edge Function (ai-assistant) for AI responses
  * 
  * @see supabase/functions/ai-assistant/index.ts - Backend handler
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -36,13 +37,65 @@ import {
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 
+// ============================================================================
+// CLIENT-SIDE RATE LIMITING
+// ============================================================================
+
+const CLIENT_RATE_LIMIT = 10; // Max requests per window (matches server)
+const CLIENT_RATE_WINDOW_MS = 60000; // 1 minute window
+const COOLDOWN_AFTER_ERROR_MS = 5000; // Wait 5 seconds after errors
+
+interface RateLimitState {
+  requestCount: number;
+  windowStart: number;
+  lastError: number;
+}
+
 /**
- * Message structure for chat history
+ * Check if a request is allowed based on client-side rate limiting
  */
+function checkClientRateLimit(state: RateLimitState): {
+  allowed: boolean;
+  remaining: number;
+  waitTime?: number;
+} {
+  const now = Date.now();
+  
+  // Check if we're in cooldown after an error
+  if (state.lastError && now - state.lastError < COOLDOWN_AFTER_ERROR_MS) {
+    return { 
+      allowed: false, 
+      remaining: 0, 
+      waitTime: COOLDOWN_AFTER_ERROR_MS - (now - state.lastError) 
+    };
+  }
+  
+  // Check if window has expired
+  if (now - state.windowStart > CLIENT_RATE_WINDOW_MS) {
+    return { allowed: true, remaining: CLIENT_RATE_LIMIT - 1 };
+  }
+  
+  // Check if limit exceeded
+  if (state.requestCount >= CLIENT_RATE_LIMIT) {
+    const waitTime = CLIENT_RATE_WINDOW_MS - (now - state.windowStart);
+    return { allowed: false, remaining: 0, waitTime };
+  }
+  
+  return { allowed: true, remaining: CLIENT_RATE_LIMIT - state.requestCount - 1 };
+}
+
+// ============================================================================
+// MESSAGE TYPES
+// ============================================================================
+
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export const AIChatbot = () => {
   // UI state
@@ -52,6 +105,13 @@ export const AIChatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
+  // Rate limiting state
+  const [rateLimit, setRateLimit] = useState<RateLimitState>({
+    requestCount: 0,
+    windowStart: Date.now(),
+    lastError: 0,
+  });
+  
   // Refs for auto-scroll and focus management
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -59,13 +119,13 @@ export const AIChatbot = () => {
   /**
    * Auto-scroll to bottom when new messages arrive
    */
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   /**
    * Focus input when chat opens
@@ -94,17 +154,60 @@ export const AIChatbot = () => {
   };
 
   /**
+   * Update rate limit state after a request
+   */
+  const updateRateLimitState = useCallback((error?: boolean) => {
+    setRateLimit(prev => {
+      const now = Date.now();
+      
+      // Reset window if expired
+      if (now - prev.windowStart > CLIENT_RATE_WINDOW_MS) {
+        return {
+          requestCount: 1,
+          windowStart: now,
+          lastError: error ? now : 0,
+        };
+      }
+      
+      // Update count within window
+      return {
+        ...prev,
+        requestCount: prev.requestCount + 1,
+        lastError: error ? now : prev.lastError,
+      };
+    });
+  }, []);
+
+  /**
    * Send message to AI backend and stream response
    * 
    * Flow:
-   * 1. Add user message to state
-   * 2. Call Edge Function with message + conversation history
-   * 3. Stream response chunks and update assistant message in real-time
+   * 1. Check client-side rate limit
+   * 2. Add user message to state
+   * 3. Call Edge Function with message + conversation history
+   * 4. Stream response chunks and update assistant message in real-time
    */
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    const trimmedInput = input.trim();
+    
+    // Basic validation
+    if (!trimmedInput || isLoading) return;
+    
+    // Input length validation (matches server limit of 2000)
+    if (trimmedInput.length > 2000) {
+      toast.error("Message too long. Please keep it under 2000 characters.");
+      return;
+    }
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+    // Client-side rate limit check
+    const rateLimitCheck = checkClientRateLimit(rateLimit);
+    if (!rateLimitCheck.allowed) {
+      const waitSeconds = Math.ceil((rateLimitCheck.waitTime || 0) / 1000);
+      toast.error(`Please wait ${waitSeconds} seconds before sending another message.`);
+      return;
+    }
+
+    const userMessage: Message = { role: "user", content: trimmedInput };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -112,6 +215,8 @@ export const AIChatbot = () => {
     let assistantContent = "";
 
     try {
+      updateRateLimitState(false);
+      
       // Call Supabase Edge Function
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`,
@@ -120,6 +225,9 @@ export const AIChatbot = () => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            // Include standard browser headers for bot detection
+            "Accept": "application/json, text/event-stream",
+            "Accept-Language": navigator.language || "en-US",
           },
           body: JSON.stringify({
             messages: [userMessage],
@@ -127,6 +235,25 @@ export const AIChatbot = () => {
           }),
         }
       );
+
+      // Handle rate limiting response from server
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+        
+        // Update local rate limit state to match server
+        setRateLimit(prev => ({
+          ...prev,
+          requestCount: CLIENT_RATE_LIMIT,
+          lastError: Date.now(),
+        }));
+        
+        throw new Error(`Rate limited. Please wait ${waitSeconds} seconds.`);
+      }
+
+      if (response.status === 403) {
+        throw new Error("Request blocked. Please try again from a regular browser.");
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -189,7 +316,12 @@ export const AIChatbot = () => {
       }
     } catch (error) {
       console.error("Chat error:", error);
+      
+      // Update rate limit state on error
+      updateRateLimitState(true);
+      
       toast.error(error instanceof Error ? error.message : "Failed to get AI response");
+      
       // Remove the empty assistant message if there was an error
       setMessages(prev => {
         if (prev[prev.length - 1]?.role === "assistant" && prev[prev.length - 1]?.content === "") {
@@ -211,6 +343,9 @@ export const AIChatbot = () => {
       handleSend();
     }
   };
+
+  // Calculate remaining requests for UI feedback
+  const rateLimitCheck = checkClientRateLimit(rateLimit);
 
   return (
     <>
@@ -416,19 +551,29 @@ export const AIChatbot = () => {
                 placeholder="Ask about AI concepts, modules, or code..."
                 className="min-h-[44px] max-h-[120px] resize-none text-sm"
                 rows={1}
+                maxLength={2000}
               />
               <Button
                 onClick={handleSend}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || !rateLimitCheck.allowed}
                 size="icon"
                 className="shrink-0"
+                title={!rateLimitCheck.allowed ? "Rate limited - please wait" : "Send message"}
               >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Press Enter to send, Shift+Enter for new line
-            </p>
+            <div className="flex justify-between items-center mt-2">
+              <p className="text-xs text-muted-foreground">
+                Press Enter to send, Shift+Enter for new line
+              </p>
+              {/* Character count indicator */}
+              {input.length > 1500 && (
+                <p className={`text-xs ${input.length > 1900 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {input.length}/2000
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
