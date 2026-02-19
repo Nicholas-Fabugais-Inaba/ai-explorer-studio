@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      security_logs: {
+        Row: {
+          blocked: boolean
+          created_at: string
+          details: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          request_path: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          blocked?: boolean
+          created_at?: string
+          details?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          request_path?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          blocked?: boolean
+          created_at?: string
+          details?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          request_path?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
