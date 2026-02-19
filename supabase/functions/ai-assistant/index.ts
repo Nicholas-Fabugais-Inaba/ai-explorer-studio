@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -335,21 +336,41 @@ You are the AI Academy Assistant, an expert AI tutor helping users learn about a
 // ============================================================================
 
 /**
- * Log potential abuse attempts for monitoring
- * In production, this could be sent to an analytics service
+ * Log potential abuse attempts to console AND persist to database
  */
-function logSecurityEvent(event: {
+async function logSecurityEvent(event: {
   type: "rate_limit" | "bot_detected" | "validation_failed" | "suspicious_content";
   ip: string;
   userAgent?: string;
   details?: string;
-}): void {
+  path?: string;
+}): Promise<void> {
+  // Always log to console
   console.warn(`[SECURITY] ${event.type}`, {
-    ip: event.ip.substring(0, 8) + "...", // Partial IP for privacy
+    ip: event.ip.substring(0, 8) + "...",
     userAgent: event.userAgent?.substring(0, 50),
     details: event.details,
     timestamp: new Date().toISOString(),
   });
+
+  // Persist to database (fire-and-forget, don't block the response)
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (supabaseUrl && serviceRoleKey) {
+      const supabase = createClient(supabaseUrl, serviceRoleKey);
+      await supabase.from("security_logs").insert({
+        event_type: event.type,
+        ip_address: event.ip,
+        user_agent: event.userAgent || null,
+        details: event.details || null,
+        request_path: event.path || "/ai-assistant",
+        blocked: event.type !== "suspicious_content",
+      });
+    }
+  } catch (err) {
+    console.error("Failed to persist security log:", err);
+  }
 }
 
 // ============================================================================
