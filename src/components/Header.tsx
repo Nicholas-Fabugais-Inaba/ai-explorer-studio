@@ -1,5 +1,6 @@
 import { Brain, BookOpen } from "lucide-react";
 import { ResourcesDrawer } from "./ResourcesDrawer";
+import { SearchDialog } from "./SearchDialog";
 import { learningModules } from "@/data/learningData";
 
 interface HeaderProps {
@@ -78,6 +79,7 @@ export const Header = ({ activeModule, onNavigate, onSelectModule }: HeaderProps
         </nav>
 
         <div className="flex items-center gap-3">
+          <SearchDialog onSelectModule={onSelectModule ?? (() => {})} />
           {activeModule && onSelectModule && (
             <div className="hidden sm:flex items-center gap-2">
               {learningModules.map((module, index) => (
